@@ -9,9 +9,16 @@ from sklearn.metrics import accuracy_score
 # 1️⃣ Load and preprocess dataset
 # -------------------------------
 file_path = r"D:\KDU\7th semester\Individual Reserach\Individual Research  (2).xlsx"
-df = pd.read_excel(file_path)
-df.columns = df.columns.str.strip()
 
+@st.cache_data
+def load_data(path):
+    df = pd.read_excel(path)
+    df.columns = df.columns.str.strip()
+    return df
+
+df = load_data(file_path)
+
+# Define target and features
 target_col = "learning mode prefer to learn for O-Level Mathematics"
 
 categorical_features = [
@@ -31,6 +38,7 @@ numeric_features = [
 
 features = categorical_features + numeric_features
 
+# Function to convert range values to midpoints
 def range_to_midpoint(val):
     try:
         if pd.isna(val):
@@ -49,7 +57,7 @@ for col in numeric_features:
     df[col] = df[col].apply(range_to_midpoint)
     df[col] = df[col].fillna(df[col].median())
 
-# Drop missing values
+# Drop rows with missing values
 df_model = df[features + [target_col]].dropna().copy()
 
 # Encode categorical features
@@ -62,13 +70,15 @@ for col in categorical_features + [target_col]:
 # Train-test split
 X = df_model[features]
 y = df_model[target_col]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
-# Train model
+# Train Random Forest
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
-# Evaluate
+# Evaluate accuracy
 y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 
@@ -112,7 +122,7 @@ if st.button("🔮 Predict Learning Mode"):
         else:
             input_df[col] = -1
 
-    # Convert numeric
+    # Convert numeric ranges
     for col in numeric_features:
         input_df[col] = range_to_midpoint(input_df.at[0, col])
 
