@@ -44,7 +44,7 @@ if uploaded_file is not None:
         "Mathematics marks range  in  Term Test 2024/ 2025 [1st Term]",
         "Mathematics marks range  in  Term Test 2024/ 2025 [2nd Term]",
         "Mathematics marks range  in  Term Test 2024/ 2025 [3rd Term]"
-        "Expenses on average for School"
+        
 
     ]
 
