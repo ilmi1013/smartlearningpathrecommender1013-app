@@ -31,6 +31,7 @@ if uploaded_file is not None:
     target_col = "learning mode prefer to learn for O-Level Mathematics"
 
     categorical_features = [
+        "Gender",
         "Current learning mode in school for mathemathics",
         "learning mode experienced for O-Level Mathematics",
         "19. How confident do you feel in your ability to score well in Mathematics through blended learning?",
