@@ -8,7 +8,6 @@ from sklearn.metrics import accuracy_score
 # -------------------------------
 # 1️⃣ App Title
 # -------------------------------
-st.set_page_config(page_title="Smart Learning Path Recommender", layout="wide")
 st.title("📘 Smart Learning Path Recommender")
 st.write("Predict the **best learning mode** for O-Level Mathematics students based on their background and performance.")
 
@@ -26,6 +25,9 @@ if uploaded_file is not None:
     df = load_data(uploaded_file)
     df.columns = df.columns.str.strip()
 
+    # -------------------------------
+    # 3️⃣ Define features & target
+    # -------------------------------
     target_col = "learning mode prefer to learn for O-Level Mathematics"
 
     categorical_features = [
@@ -46,7 +48,7 @@ if uploaded_file is not None:
     features = categorical_features + numeric_features
 
     # -------------------------------
-    # Helper function to convert ranges
+    # 4️⃣ Helper function for numeric ranges
     # -------------------------------
     def range_to_midpoint(val):
         try:
@@ -65,14 +67,21 @@ if uploaded_file is not None:
         df[col] = df[col].apply(range_to_midpoint)
         df[col] = df[col].fillna(df[col].median())
 
+    # Drop rows with missing target or features
     df_model = df[features + [target_col]].dropna().copy()
 
+    # -------------------------------
+    # 5️⃣ Encode categorical features
+    # -------------------------------
     label_encoders = {}
     for col in categorical_features + [target_col]:
         le = LabelEncoder()
         df_model[col] = le.fit_transform(df_model[col].astype(str))
         label_encoders[col] = le
 
+    # -------------------------------
+    # 6️⃣ Train-test split and model
+    # -------------------------------
     X = df_model[features]
     y = df_model[target_col]
     X_train, X_test, y_train, y_test = train_test_split(
@@ -85,28 +94,29 @@ if uploaded_file is not None:
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
 
-    st.sidebar.header("📊 Model Info")
-    st.sidebar.write(f"**Accuracy:** {accuracy:.2f}")
+    st.subheader("📊 Model Performance")
+    st.write(f"**Accuracy:** {accuracy:.2f}")
 
     # -------------------------------
-    # Sidebar input form
+    # 7️⃣ User Input Form
     # -------------------------------
-    st.sidebar.header("📝 Enter Student Details")
+    st.subheader("📝 Enter Student Details")
     user_input = {}
 
     for col in categorical_features:
         options = list(df[col].dropna().unique())
-        user_input[col] = st.sidebar.selectbox(f"{col}", options)
+        user_input[col] = st.selectbox(f"{col}", options)
 
     for col in numeric_features:
-        user_input[col] = st.sidebar.text_input(f"{col} (e.g., 55-60)", "")
+        user_input[col] = st.text_input(f"{col} (e.g., 55-60)", "")
 
     # -------------------------------
-    # Predict button
+    # 8️⃣ Predict Button
     # -------------------------------
-    if st.sidebar.button("🔮 Predict Learning Mode"):
+    if st.button("🔮 Predict Learning Mode"):
         input_df = pd.DataFrame([user_input])
 
+        # Encode categorical
         for col in categorical_features:
             le = label_encoders[col]
             val = str(input_df.at[0, col])
@@ -115,14 +125,15 @@ if uploaded_file is not None:
             else:
                 input_df[col] = -1
 
+        # Convert numeric
         for col in numeric_features:
             input_df[col] = range_to_midpoint(input_df.at[0, col])
 
+        # Predict
         pred_encoded = model.predict(input_df)[0]
         pred_label = label_encoders[target_col].inverse_transform([pred_encoded])[0]
 
-        st.subheader("✅ Recommended Learning Mode")
-        st.success(f"**{pred_label}**")
+        st.success(f"✅ Recommended Learning Mode: **{pred_label}**")
 
 else:
     st.warning("⚠️ Please upload your Excel dataset to continue.")
